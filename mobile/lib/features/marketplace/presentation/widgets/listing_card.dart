@@ -44,12 +44,23 @@ class ListingCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [
-                        Text(listing.platformLabel, style: theme.textTheme.labelSmall),
+                        Flexible(
+                          child: Text(
+                            listing.platformLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelSmall,
+                          ),
+                        ),
                         if (listing.seller?.avgRating != null) ...[
                           const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            '★ ${listing.seller!.avgRating!.toStringAsFixed(1)}',
-                            style: theme.textTheme.labelSmall,
+                          Flexible(
+                            child: Text(
+                              '★ ${listing.seller!.avgRating!.toStringAsFixed(1)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall,
+                            ),
                           ),
                         ],
                       ],

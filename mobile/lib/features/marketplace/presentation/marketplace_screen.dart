@@ -198,27 +198,50 @@ class _ListingGrid extends StatelessWidget {
             : width > 560
                 ? 2
                 : 1;
-        return GridView.builder(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.xs,
-            AppSpacing.md,
-            AppSpacing.lg,
-          ),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: AppSpacing.sm,
-            crossAxisSpacing: AppSpacing.sm,
-            mainAxisExtent: 140,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final listing = items[index];
-            return ListingCard(
-              listing: listing,
-              onTap: () => context.push('/listings/${listing.id}'),
-            );
-          },
+        final rowCount = (items.length + crossAxisCount - 1) ~/ crossAxisCount;
+        return CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.xs,
+                AppSpacing.md,
+                AppSpacing.lg,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, rowIndex) {
+                    final start = rowIndex * crossAxisCount;
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: rowIndex == rowCount - 1 ? 0 : AppSpacing.sm,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          for (var col = 0; col < crossAxisCount; col++) ...[
+                            if (col > 0) const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: start + col < items.length
+                                  ? ListingCard(
+                                      listing: items[start + col],
+                                      onTap: () => context.push(
+                                        '/listings/${items[start + col].id}',
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                  childCount: rowCount,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

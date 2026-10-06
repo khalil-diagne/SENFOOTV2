@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-night font-sans text-slate-200 antialiased;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply border border-white/10 bg-[rgba(15,23,42,0.7)] backdrop-blur-2xl;
+  }
+  .glass-soft {
+    @apply border border-white/5 bg-white/5 backdrop-blur-xl;
+  }
+  .input-neon {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-11 text-sm
+      text-slate-100 placeholder:text-slate-500 outline-none transition
+      focus:border-neon-cyan/60 focus:bg-white/10 focus:shadow-glow-cyan;
+  }
+  .btn-neon {
+    @apply inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r
+      from-neon-yellow to-amber-400 px-6 py-3 font-display text-sm font-bold uppercase
+      tracking-[0.18em] text-night-900 shadow-glow-yellow transition
+      hover:brightness-110 active:scale-[0.98];
+  }
+  .btn-ghost-neon {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10
+      bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-200 transition
+      hover:border-neon-cyan/50 hover:bg-white/10 hover:shadow-glow-cyan;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-neon-yellow via-amber-300 to-neon-cyan bg-clip-text text-transparent;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1
+      text-xs font-medium text-slate-300 transition hover:border-neon-cyan/50 hover:text-white;
+  }
+}

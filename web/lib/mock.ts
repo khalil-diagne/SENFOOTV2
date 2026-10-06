@@ -1,0 +1,58 @@
+import type { Listing } from "@/components/ListingCard";
+
+export const listings: Listing[] = [
+  {
+    id: "l1",
+    title: "Compte eFootball 3250 — Division 1",
+    power: 3250,
+    platform: "PlayStation",
+    priceFcfa: 28000,
+    stars: ["Messi", "Gullit", "Mbappé", "Ronaldinho", "Pirlo"],
+    seller: { name: "DakarWinner", verified: true, rating: 4.9, sales: 132 },
+  },
+  {
+    id: "l2",
+    title: "Effectif 3120 full epic + 12 légendes",
+    power: 3120,
+    platform: "Android",
+    priceFcfa: 17500,
+    stars: ["Cruyff", "Beckenbauer", "Neymar"],
+    seller: { name: "TerangaFC", verified: true, rating: 4.7, sales: 58 },
+  },
+  {
+    id: "l3",
+    title: "Compte iOS 2980 — Squad compétitif",
+    power: 2980,
+    platform: "iOS",
+    priceFcfa: 12000,
+    stars: ["Haaland", "De Bruyne"],
+    seller: { name: "LionPro", verified: false, rating: 4.4, sales: 21 },
+  },
+  {
+    id: "l4",
+    title: "PC eFootball 3305 — Top 100 national",
+    power: 3305,
+    platform: "PC",
+    priceFcfa: 42000,
+    stars: ["Gullit", "Maradona", "Maldini", "Kaka", "Ronaldo"],
+    seller: { name: "AtlasGG", verified: true, rating: 5.0, sales: 240 },
+  },
+  {
+    id: "l5",
+    title: "Compte Xbox 3040 — 3.5M GP",
+    power: 3040,
+    platform: "Xbox",
+    priceFcfa: 15000,
+    stars: ["Vinícius Jr", "Bellingham"],
+    seller: { name: "SaloumGamer", verified: false, rating: 4.2, sales: 9 },
+  },
+  {
+    id: "l6",
+    title: "Compte Android 3210 — Full featured",
+    power: 3210,
+    platform: "Android",
+    priceFcfa: 19900,
+    stars: ["Messi", "Mbappé", "Van Dijk", "Modric"],
+    seller: { name: "Saint-LouisPro", verified: true, rating: 4.8, sales: 76 },
+  },
+];

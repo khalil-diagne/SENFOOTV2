@@ -1,4 +1,6 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
 import 'package:efoot_market/features/auth/application/auth_controller.dart';
+import 'package:efoot_market/shared/widgets/stadium_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,24 +58,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Créer un compte')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const SizedBox(
+                    height: 72,
+                    child: PitchBackdrop(child: SizedBox.shrink()),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: _fullNameController,
                     decoration: const InputDecoration(labelText: 'Nom complet'),
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Nom requis' : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _usernameController,
                     decoration: const InputDecoration(labelText: 'Username'),
@@ -82,7 +90,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -92,7 +100,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -101,7 +109,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       hintText: '+221 77 000 00 00',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
@@ -111,7 +119,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   SegmentedButton<String>(
                     segments: const [
                       ButtonSegment(value: 'buyer', label: Text('Acheteur')),
@@ -120,19 +128,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     selected: {_role},
                     onSelectionChanged: (value) => setState(() => _role = value.first),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Un compte vendeur peut acheter et vendre.',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   ),
                   if (_error != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
                       _error!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      style: TextStyle(color: context.tokens.danger),
                     ),
                   ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg),
                   FilledButton(
                     onPressed: _loading ? null : _submit,
                     child: _loading
@@ -143,7 +151,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           )
                         : const Text('S\'inscrire'),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextButton(
                     onPressed: () => context.go('/login'),
                     child: const Text('J\'ai déjà un compte'),

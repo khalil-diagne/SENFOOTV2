@@ -1,12 +1,26 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
 import 'package:efoot_market/core/utils/formatters.dart';
 import 'package:efoot_market/features/auth/application/auth_controller.dart';
 import 'package:efoot_market/features/orders/application/orders_controller.dart';
 import 'package:efoot_market/features/orders/domain/order_model.dart';
 import 'package:efoot_market/features/orders/presentation/widgets/order_status_chip.dart';
+import 'package:efoot_market/shared/widgets/app_surface.dart';
 import 'package:efoot_market/shared/widgets/error_view.dart';
+import 'package:efoot_market/shared/widgets/stadium_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+Color _toneColor(BuildContext context, StatusTone tone) {
+  final tokens = context.tokens;
+  return switch (tone) {
+    StatusTone.success => tokens.success,
+    StatusTone.info => tokens.info,
+    StatusTone.warning => tokens.warning,
+    StatusTone.danger => tokens.danger,
+    StatusTone.neutral => tokens.textDim,
+  };
+}
 
 class OrderDetailScreen extends ConsumerStatefulWidget {
   const OrderDetailScreen({super.key, required this.orderId});
@@ -133,43 +147,43 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final commentController = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Noter cette commande'),
-          content: Column(
+      builder: (context) => AlertDialog(
+        title: const Text('Laisser un avis'),
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   for (var i = 1; i <= 5; i++)
                     IconButton(
-                      onPressed: () => setDialogState(() => rating = i),
+                      onPressed: () => setState(() => rating = i),
                       icon: Icon(
                         i <= rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
+                        color: context.tokens.warning,
                       ),
                     ),
                 ],
               ),
               TextField(
                 controller: commentController,
-                maxLines: 2,
+                maxLines: 3,
                 decoration: const InputDecoration(hintText: 'Commentaire (optionnel)'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Envoyer'),
-            ),
-          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Envoyer'),
+          ),
+        ],
       ),
     );
     if (confirmed != true) return;
@@ -283,84 +297,86 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           onRetry: () => ref.invalidate(orderDetailProvider(widget.orderId)),
         ),
         data: (order) {
+          final theme = Theme.of(context);
           final actions = _actions(order, userId, role);
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 640),
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
                   Row(
                     children: [
-                      OrderStatusChip(status: order.status, label: order.statusLabel),
-                      const Spacer(),
-                      Text('#${order.id.substring(0, 8)}'),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: OrderStatusChip(
+                            status: order.status,
+                            label: order.statusLabel,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text('#${order.id.substring(0, 8)}', style: theme.textTheme.bodySmall),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Montant', style: Theme.of(context).textTheme.labelLarge),
-                          Text(
-                            formatFcfa(order.priceXof),
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppSurface(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Montant', style: theme.textTheme.labelSmall),
+                        Text(
+                          formatFcfa(order.priceXof),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.primary,
                           ),
-                          const SizedBox(height: 8),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'Commission ${(order.commissionRate * 100).toStringAsFixed(0)} %'
+                          '${order.commissionXof != null ? ' : ${formatFcfa(order.commissionXof!)}' : ''}',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        if (order.paymentReference != null)
                           Text(
-                            'Commission ${(order.commissionRate * 100).toStringAsFixed(0)} %'
-                            '${order.commissionXof != null ? ' : ${formatFcfa(order.commissionXof!)}' : ''}',
+                            'Réf. paiement : ${order.paymentReference}',
+                            style: theme.textTheme.bodySmall,
                           ),
-                          if (order.paymentReference != null)
-                            Text('Réf. paiement : ${order.paymentReference}'),
-                          if (order.autoReleaseAt != null)
-                            Text(
-                              'Libération auto : ${formatDateTime(order.autoReleaseAt!)}',
-                            ),
-                          if (order.disputeReason != null) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              'Litige : ${order.disputeReason}',
-                              style: TextStyle(color: Theme.of(context).colorScheme.error),
-                            ),
-                          ],
-                          if (order.resolutionNote != null) ...[
-                            const SizedBox(height: 8),
-                            Text('Résolution : ${order.resolutionNote}'),
-                          ],
+                        if (order.autoReleaseAt != null)
+                          Text(
+                            'Libération auto : ${formatDateTime(order.autoReleaseAt!)}',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        if (order.disputeReason != null) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            'Litige : ${order.disputeReason}',
+                            style: TextStyle(color: context.tokens.danger),
+                          ),
                         ],
-                      ),
+                        if (order.resolutionNote != null) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Text('Résolution : ${order.resolutionNote}'),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text('Historique', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  ...order.events.map(
-                    (event) => ListTile(
-                      dense: true,
-                      leading: const Icon(Icons.circle, size: 10),
-                      title: Text(event.toStatus.replaceAll('_', ' ')),
-                      subtitle: Text(
-                        [
-                          if (event.note != null && event.note!.isNotEmpty) event.note!,
-                          event.actorRole,
-                          formatRelativeTime(event.createdAt),
-                        ].join(' · '),
-                      ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text('Historique', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.md),
+                  for (var i = 0; i < order.events.length; i++)
+                    _TimelineTile(
+                      event: order.events[i],
+                      last: i == order.events.length - 1,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...actions.map(
-                    (widget) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
+                  const SizedBox(height: AppSpacing.md),
+                  for (final widget in actions)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: widget,
                     ),
-                  ),
                   OutlinedButton.icon(
                     onPressed: () => context.push('/orders/${order.id}/chat'),
                     icon: const Icon(Icons.chat_bubble_outline),
@@ -371,6 +387,72 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _TimelineTile extends StatelessWidget {
+  const _TimelineTile({required this.event, required this.last});
+
+  final OrderEvent event;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final color = _toneColor(context, orderStatusTone(event.toStatus));
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 20,
+            child: Column(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(top: 6),
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                ),
+                if (!last)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      color: tokens.line,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.toStatus.replaceAll('_', ' '),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    [
+                      if (event.note != null && event.note!.isNotEmpty) event.note!,
+                      event.actorRole,
+                      formatRelativeTime(event.createdAt),
+                    ].join(' · '),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

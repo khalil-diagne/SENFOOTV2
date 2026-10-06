@@ -12,6 +12,8 @@ class EFootApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'EFoot Market SN',
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

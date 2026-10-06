@@ -1,6 +1,8 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
 import 'package:efoot_market/features/marketplace/application/listings_controller.dart';
 import 'package:efoot_market/features/marketplace/domain/listing_model.dart';
 import 'package:efoot_market/features/marketplace/presentation/widgets/listing_card.dart';
+import 'package:efoot_market/shared/widgets/empty_state.dart';
 import 'package:efoot_market/shared/widgets/error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +32,23 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     super.dispose();
   }
 
+  Future<void> _applyQuery() async {
+    final q = _searchController.text.trim();
+    final filters = ref.read(listingsControllerProvider).filters.copyWith(
+          query: q,
+          clearQuery: q.isEmpty,
+        );
+    await ref.read(listingsControllerProvider.notifier).applyFilters(filters);
+  }
+
+  Future<void> _selectPlatform(String? platform) async {
+    final current = ref.read(listingsControllerProvider).filters;
+    final filters = platform == null
+        ? current.copyWith(clearPlatform: true)
+        : current.copyWith(platform: platform);
+    await ref.read(listingsControllerProvider.notifier).applyFilters(filters);
+  }
+
   Future<void> _openFilters() async {
     final current = ref.read(listingsControllerProvider).filters;
     final result = await showModalBottomSheet<ListingFilters>(
@@ -48,7 +67,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Marketplace'),
+        title: const Text('Marché'),
         actions: [
           IconButton(
             onPressed: _openFilters,
@@ -60,7 +79,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -68,38 +92,33 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.arrow_forward),
-                  onPressed: () async {
-                    final q = _searchController.text.trim();
-                    final filters =
-                        ref.read(listingsControllerProvider).filters.copyWith(
-                              query: q,
-                              clearQuery: q.isEmpty,
-                            );
-                    await ref.read(listingsControllerProvider.notifier).applyFilters(filters);
-                  },
+                  onPressed: _applyQuery,
                 ),
               ),
-              onSubmitted: (_) async {
-                final q = _searchController.text.trim();
-                final filters = ref.read(listingsControllerProvider).filters.copyWith(
-                      query: q,
-                      clearQuery: q.isEmpty,
-                    );
-                await ref.read(listingsControllerProvider.notifier).applyFilters(filters);
-              },
+              onSubmitted: (_) => _applyQuery(),
             ),
           ),
-          if (state.filters.platform != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Chip(
-                label: Text(_platforms[state.filters.platform] ?? state.filters.platform!),
-                onDeleted: () async {
-                  final filters = state.filters.copyWith(clearPlatform: true);
-                  await ref.read(listingsControllerProvider.notifier).applyFilters(filters);
-                },
-              ),
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              children: [
+                _PlatformChip(
+                  label: 'Toutes',
+                  selected: state.filters.platform == null,
+                  onSelected: () => _selectPlatform(null),
+                ),
+                for (final entry in _platforms.entries)
+                  _PlatformChip(
+                    label: entry.value,
+                    selected: state.filters.platform == entry.key,
+                    onSelected: () => _selectPlatform(entry.key),
+                  ),
+              ],
             ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref.read(listingsControllerProvider.notifier).refresh(),
@@ -125,6 +144,30 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 }
 
+class _PlatformChip extends StatelessWidget {
+  const _PlatformChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.sm),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onSelected(),
+      ),
+    );
+  }
+}
+
 class _ListingGrid extends StatelessWidget {
   const _ListingGrid({required this.state});
 
@@ -140,27 +183,33 @@ class _ListingGrid extends StatelessWidget {
       return ListView(
         children: const [
           SizedBox(height: 120),
-          Center(child: Text('Aucune annonce pour le moment.')),
+          EmptyState(
+            title: 'Aucune annonce pour le moment',
+            subtitle: 'Revenez plus tard ou ajustez vos filtres.',
+          ),
         ],
       );
     }
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final crossAxisCount = width > 1100
-            ? 4
-            : width > 800
-                ? 3
-                : width > 560
-                    ? 2
-                    : 1;
+        final crossAxisCount = width > 900
+            ? 3
+            : width > 560
+                ? 2
+                : 1;
         return GridView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.xs,
+            AppSpacing.md,
+            AppSpacing.lg,
+          ),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: crossAxisCount == 1 ? 2.4 : 0.78,
+            mainAxisSpacing: AppSpacing.sm,
+            crossAxisSpacing: AppSpacing.sm,
+            mainAxisExtent: 140,
           ),
           itemCount: items.length,
           itemBuilder: (context, index) {
@@ -209,17 +258,17 @@ class _FilterSheetState extends State<_FilterSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        left: AppSpacing.md,
+        right: AppSpacing.md,
+        top: AppSpacing.md,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Filtres', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String?>(
             initialValue: _platform,
             decoration: const InputDecoration(labelText: 'Plateforme'),
@@ -230,7 +279,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             ],
             onChanged: (value) => setState(() => _platform = value),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
@@ -240,7 +289,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   decoration: const InputDecoration(labelText: 'Prix min (FCFA)'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
                   controller: _maxController,
@@ -250,13 +299,13 @@ class _FilterSheetState extends State<_FilterSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _powerController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Puissance (ex. 3200)'),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
           FilledButton(
             onPressed: () {
               final min = int.tryParse(_minController.text.trim());

@@ -1,5 +1,7 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
 import 'package:efoot_market/features/auth/application/auth_controller.dart';
 import 'package:efoot_market/shared/providers/app_providers.dart';
+import 'package:efoot_market/shared/widgets/app_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -71,6 +73,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
+    final tokens = context.tokens;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Vendre un compte')),
@@ -78,27 +81,23 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (auth.user != null && !auth.user!.isSeller) ...[
-                    Card(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          'Votre compte est en rôle acheteur. Passez en rôle vendeur '
-                          '(réinscription ou support) pour publier des annonces.',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
-                          ),
-                        ),
+                    AppSurface(
+                      borderColor: tokens.danger,
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Text(
+                        'Votre compte est en rôle acheteur. Passez en rôle vendeur '
+                        '(réinscription ou support) pour publier des annonces.',
+                        style: TextStyle(color: tokens.danger),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                   ],
                   TextFormField(
                     controller: _titleController,
@@ -108,7 +107,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                     ),
                     validator: (v) => (v == null || v.trim().length < 3) ? 'Titre trop court' : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _descriptionController,
                     maxLines: 5,
@@ -120,7 +119,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                         ? 'Description trop courte (min. 10)'
                         : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _priceController,
                     keyboardType: TextInputType.number,
@@ -134,7 +133,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   DropdownButtonFormField<String>(
                     initialValue: _platform,
                     decoration: const InputDecoration(labelText: 'Plateforme'),
@@ -147,7 +146,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                     ],
                     onChanged: (value) => setState(() => _platform = value ?? 'mobile'),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       Expanded(
@@ -157,7 +156,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                           decoration: const InputDecoration(labelText: 'Puissance'),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: TextFormField(
                           controller: _levelController,
@@ -167,7 +166,7 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: _imageUrlController,
                     decoration: const InputDecoration(
@@ -176,10 +175,10 @@ class _ListingFormScreenState extends ConsumerState<ListingFormScreen> {
                     ),
                   ),
                   if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(_error!, style: TextStyle(color: tokens.danger)),
                   ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg),
                   FilledButton(
                     onPressed: _loading ? null : _submit,
                     child: _loading

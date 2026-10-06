@@ -2,7 +2,7 @@ import 'package:efoot_market/app.dart';
 import 'package:efoot_market/core/auth/auth_events.dart';
 import 'package:efoot_market/features/auth/domain/auth_models.dart';
 import 'package:efoot_market/shared/providers/app_providers.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Se connecter'), findsOneWidget);
-    expect(find.text('Marketplace'), findsNothing);
+    expect(find.widgetWithText(AppBar, 'Marché'), findsNothing);
   });
 
   testWidgets('token valide : accède à la marketplace', (tester) async {
@@ -60,7 +60,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Marketplace'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Marché'), findsOneWidget);
   });
 
   testWidgets('session expirée : redirige vers la connexion', (tester) async {
@@ -94,13 +94,13 @@ void main() {
       UncontrolledProviderScope(container: container, child: const EFootApp()),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Marketplace'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Marché'), findsOneWidget);
 
     // L'intercepteur HTTP émet cet événement quand le refresh échoue.
     container.read(authEventsProvider.notifier).sessionExpired();
     await tester.pumpAndSettle();
 
     expect(find.text('Se connecter'), findsOneWidget);
-    expect(find.text('Marketplace'), findsNothing);
+    expect(find.widgetWithText(AppBar, 'Marché'), findsNothing);
   });
 }

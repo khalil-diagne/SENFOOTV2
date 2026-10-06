@@ -1,8 +1,10 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
 import 'package:efoot_market/core/utils/formatters.dart';
 import 'package:efoot_market/features/auth/application/auth_controller.dart';
 import 'package:efoot_market/features/orders/application/orders_controller.dart';
-import 'package:efoot_market/features/orders/domain/order_model.dart';
 import 'package:efoot_market/features/orders/presentation/widgets/order_status_chip.dart';
+import 'package:efoot_market/shared/widgets/app_surface.dart';
+import 'package:efoot_market/shared/widgets/empty_state.dart';
 import 'package:efoot_market/shared/widgets/error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,25 +22,27 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final state = ref.watch(ordersControllerProvider);
     final auth = ref.watch(authControllerProvider);
     final userId = auth.user?.id;
 
     final all = state.orders;
-    final purchases = userId == null
-        ? <Order>[]
-        : all.where((order) => order.buyerId == userId).toList();
-    final sales = userId == null
-        ? <Order>[]
-        : all.where((order) => order.sellerId == userId).toList();
-    final items = _tab == 0 ? purchases : sales;
+    final rows = _tab == 0
+        ? all.where((o) => userId != null && o.buyerId == userId).toList()
+        : all.where((o) => userId != null && o.sellerId == userId).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mes commandes')),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: SegmentedButton<int>(
               segments: const [
                 ButtonSegment(value: 0, label: Text('Achats')),
@@ -51,11 +55,11 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref.read(ordersControllerProvider.notifier).refresh(),
-              child: state.error != null && items.isEmpty
+              child: state.error != null && all.isEmpty
                   ? ListView(
                       children: [
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.45,
+                          height: MediaQuery.of(context).size.height * 0.5,
                           child: ErrorView(
                             message: state.error!,
                             onRetry: () =>
@@ -64,30 +68,54 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
                         ),
                       ],
                     )
-                  : items.isEmpty
+                  : rows.isEmpty
                       ? ListView(
                           children: const [
                             SizedBox(height: 120),
-                            Center(child: Text('Aucune commande pour l\'instant.')),
+                            EmptyState(
+                              title: 'Aucune commande',
+                              subtitle: 'Vos achats et vos ventes apparaîtront ici.',
+                              icon: Icons.receipt_long_outlined,
+                            ),
                           ],
                         )
                       : ListView.separated(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: items.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          itemCount: rows.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: AppSpacing.sm),
                           itemBuilder: (context, index) {
-                            final order = items[index];
-                            return Card(
-                              child: ListTile(
-                                title: Text(
-                                  '${formatFcfa(order.priceXof)} · #${order.id.substring(0, 8)}',
-                                ),
-                                subtitle: Text(formatRelativeTime(order.createdAt)),
-                                trailing: OrderStatusChip(
-                                  status: order.status,
-                                  label: order.statusLabel,
-                                ),
-                                onTap: () => context.push('/orders/${order.id}'),
+                            final order = rows[index];
+                            return AppSurface(
+                              onTap: () => context.push('/orders/${order.id}'),
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          formatFcfa(order.priceXof),
+                                          style: theme.textTheme.titleLarge,
+                                        ),
+                                        const SizedBox(height: AppSpacing.xs),
+                                        Text(
+                                          '#${order.id.substring(0, 8)} · '
+                                          '${formatRelativeTime(order.createdAt)}',
+                                          style: theme.textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Flexible(
+                                    child: OrderStatusChip(
+                                      status: order.status,
+                                      label: order.statusLabel,
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           },

@@ -1,3 +1,4 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
 import 'package:efoot_market/core/utils/formatters.dart';
 import 'package:efoot_market/features/auth/application/auth_controller.dart';
 import 'package:efoot_market/features/chat/application/chat_controller.dart';
@@ -39,6 +40,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.tokens;
     final chatState = ref.watch(chatControllerProvider(widget.orderId));
     final auth = ref.watch(authControllerProvider);
     final me = auth.user?.id;
@@ -58,33 +61,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         itemCount: chatState.messages.length,
                         itemBuilder: (context, index) {
                           final message = chatState.messages[index];
                           final isMe = message.senderId == me;
                           return Align(
-                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment:
+                                isMe ? Alignment.centerRight : Alignment.centerLeft,
                             child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.sm,
+                              ),
                               constraints: BoxConstraints(
                                 maxWidth: MediaQuery.of(context).size.width * 0.78,
                               ),
                               decoration: BoxDecoration(
-                                color: isMe
-                                    ? Theme.of(context).colorScheme.primaryContainer
-                                    : Theme.of(context).colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
+                                color: isMe ? tokens.surfaceHigh : theme.colorScheme.surface,
+                                border: Border.all(color: tokens.line),
+                                borderRadius: BorderRadius.circular(AppRadius.md),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(message.body),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: AppSpacing.xs),
                                   Text(
                                     formatRelativeTime(message.createdAt),
-                                    style: Theme.of(context).textTheme.labelSmall,
+                                    style: theme.textTheme.labelSmall,
                                   ),
                                 ],
                               ),
@@ -95,7 +101,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.sm,
+                AppSpacing.sm,
+                AppSpacing.sm,
+                AppSpacing.md,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -107,7 +118,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       onSubmitted: (_) => _send(),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   IconButton.filled(
                     onPressed: chatState.sending ? null : _send,
                     icon: chatState.sending

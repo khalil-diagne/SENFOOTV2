@@ -1,3 +1,5 @@
+import 'package:efoot_market/core/theme/app_theme.dart';
+import 'package:efoot_market/shared/widgets/stadium_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,7 +35,7 @@ class HomeShell extends StatelessWidget {
           }
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.storefront), label: 'Market'),
+          NavigationDestination(icon: Icon(Icons.storefront), label: 'Marché'),
           NavigationDestination(icon: Icon(Icons.receipt_long), label: 'Commandes'),
           NavigationDestination(icon: Icon(Icons.add_business), label: 'Vendre'),
           NavigationDestination(icon: Icon(Icons.person), label: 'Profil'),
@@ -49,14 +51,17 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.sports_esports, size: 64),
-            SizedBox(height: 16),
-            CircularProgressIndicator(),
-          ],
+      body: PitchBackdrop(
+        opacity: 0.5,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.sports_esports, size: 64),
+              SizedBox(height: AppSpacing.md),
+              CircularProgressIndicator(),
+            ],
+          ),
         ),
       ),
     );

@@ -1,0 +1,9 @@
+# Flutter SDK (vendored locally, huge)
+/flutter/
+
+# Provided design bundle
+/files.zip
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
